@@ -1,0 +1,38 @@
+auth:
+  env_vars:
+  - REQUESTS_AUTH_TOKEN
+  - API_KEY
+  fallback: anonymous
+  required: false
+  type: none
+client:
+  class_path: requests.requests.sessions.Session
+  init_params: {}
+  setup_methods: []
+hints:
+  boost_patterns:
+  - ^(get|post|put|delete)$
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - requests
+  - requests.models.Response
+  - requests.sessions.Session
+  penalize_method_patterns:
+  - ^(delete|remove)$
+  prioritize_methods:
+  - get
+  - post
+  - put
+  - delete
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 0.9
+  description: This SDK is used for making HTTP requests in a user-friendly manner.
+  generated_by: LLM Auto-Configurator
+  homepage: https://docs.python-requests.org/en/latest/
+name: requests
+sdk_module: requests

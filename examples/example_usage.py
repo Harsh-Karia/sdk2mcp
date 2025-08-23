@@ -5,6 +5,10 @@ Example usage of the Universal SDK-to-MCP Converter.
 This demonstrates how to use the system with different SDKs.
 """
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from introspector_v2 import UniversalIntrospector
 from mcp_tool_generator import UniversalMCPToolGenerator
 from pattern_recognizer import UniversalPatternRecognizer
@@ -39,9 +43,10 @@ def example_with_pattern_analysis():
     patterns = recognizer.analyze_patterns(methods)
     
     print("Pattern Analysis Results:")
-    print(f"- Resources found: {len(patterns.resources)}")
-    print(f"- CRUD operations: {len(patterns.crud_operations)}")
-    print(f"- Auth flows: {len(patterns.auth_flows)}")
+    print(f"- Resources found: {len(patterns.get('resources', []))}")
+    print(f"- CRUD operations: {len(patterns.get('crud_operations', []))}")
+    print(f"- Auth flows: {len(patterns.get('auth_flows', []))}")
+    print(f"- API groups: {len(patterns.get('api_groups', []))}")
     
     return patterns
 
