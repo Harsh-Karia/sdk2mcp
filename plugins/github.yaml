@@ -1,0 +1,32 @@
+auth:
+  env_vars:
+  - GITHUB_TOKEN
+  - GITHUB_ACCESS_TOKEN
+  fallback: anonymous
+  required: false
+  type: token
+client:
+  class_path: github.Github
+  init_params:
+    auth: ${auth.value}
+hints:
+  boost_patterns:
+  - ^(get|create|list)_
+  exclude_patterns:
+  - _with_http_info$
+  important_classes:
+  - Repository
+  - Issue
+  - PullRequest
+  - User
+  - Organization
+  prioritize_methods:
+  - get_user
+  - get_repo
+  - create_issue
+  - get_organization
+metadata:
+  description: GitHub API v3/v4 SDK
+  homepage: https://github.com/PyGithub/PyGithub
+name: github
+sdk_module: github

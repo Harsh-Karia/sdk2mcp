@@ -1,0 +1,28 @@
+auth:
+  env_vars: []
+  fallback: anonymous
+  required: false
+  type: none
+hints:
+  boost_patterns: []
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - base64
+  prioritize_methods:
+  - b64encode
+  - b64decode
+  - encode
+  - decode
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 0.9
+  description: This SDK is used for encoding and decoding data in various base formats
+    (Base64, Base32, Base16, etc.).
+  generated_by: LLM Auto-Configurator
+  homepage: https://docs.python.org/3/library/base64.html
+name: base64
+sdk_module: base64

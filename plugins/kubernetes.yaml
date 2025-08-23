@@ -1,0 +1,24 @@
+auth:
+  config_files:
+  - ~/.kube/config
+  fallback: incluster
+  type: kubeconfig
+client:
+  class_path: kubernetes.client.ApiClient
+  setup_methods:
+  - kubernetes.config.load_kube_config
+hints:
+  boost_patterns:
+  - ^(create|list|get|delete|patch)_namespaced_
+  exclude_patterns:
+  - _with_http_info$
+  - ^connect_
+  important_classes:
+  - CoreV1Api
+  - AppsV1Api
+  - BatchV1Api
+metadata:
+  description: Kubernetes Python client
+  homepage: https://github.com/kubernetes-client/python
+name: kubernetes
+sdk_module: kubernetes

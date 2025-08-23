@@ -1,0 +1,34 @@
+auth:
+  env_vars: []
+  fallback: anonymous
+  required: false
+  type: none
+hints:
+  boost_patterns:
+  - ^(get|list|create|update|delete)_
+  - ^(fetch|add|remove)_
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - pathlib.Path
+  - pathlib.WindowsPath
+  penalize_method_patterns:
+  - ^(delete|remove|destroy)_
+  prioritize_methods:
+  - absolute
+  - exists
+  - chmod
+  - cwd
+  - glob
+  priority_limits:
+    p2_limit: null
+metadata:
+  auto_generated: true
+  confidence: 0.9
+  description: This SDK is used for filesystem path manipulation and operations in
+    a platform-independent manner.
+  generated_by: LLM Auto-Configurator
+  homepage: https://docs.python.org/3/library/pathlib.html
+name: pathlib
+sdk_module: pathlib

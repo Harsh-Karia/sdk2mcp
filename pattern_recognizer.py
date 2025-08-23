@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Set, Optional, Tuple
 import re
 from collections import defaultdict
-from introspector import MethodInfo
+from introspector_v2 import MethodInfo
 
 @dataclass
 class ResourcePattern:

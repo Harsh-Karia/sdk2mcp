@@ -300,7 +300,30 @@ class UniversalMCPToolGenerator:
         
         # Default to string if no type determined
         if "type" not in schema:
-            schema["type"] = "string"
+            # Try to infer type from default value
+            if param.default_value is not None:
+                # Handle actual boolean values
+                if isinstance(param.default_value, bool):
+                    schema["type"] = "boolean"
+                # Handle string representations
+                elif isinstance(param.default_value, str):
+                    if param.default_value in ['True', 'False', 'true', 'false']:
+                        schema["type"] = "boolean"
+                    elif param.default_value.isdigit():
+                        schema["type"] = "integer"
+                    elif param.default_value.replace('.', '').isdigit():
+                        schema["type"] = "number"
+                    else:
+                        schema["type"] = "string"
+                # Handle actual numeric values
+                elif isinstance(param.default_value, int):
+                    schema["type"] = "integer"
+                elif isinstance(param.default_value, float):
+                    schema["type"] = "number"
+                else:
+                    schema["type"] = "string"
+            else:
+                schema["type"] = "string"
         
         # Add description if available
         if param.description:
@@ -315,9 +338,54 @@ class UniversalMCPToolGenerator:
         
         # Add default value if not None
         if param.default_value is not None and param.default_value != 'None':
-            schema["default"] = param.default_value
+            # Parse the default value to the correct type
+            schema["default"] = self._parse_default_value(param.default_value, schema.get("type", "string"))
         
         return schema
+    
+    def _parse_default_value(self, default_value: Any, json_type: str) -> Any:
+        """Parse a default value to the correct JSON type."""
+        # If it's already the right type, return as-is
+        if isinstance(default_value, (bool, int, float)) or default_value is None:
+            return default_value
+        
+        # Only process strings
+        if not isinstance(default_value, str):
+            return str(default_value)
+        
+        default_str = default_value
+        
+        # Handle boolean defaults
+        if json_type == "boolean":
+            if default_str.lower() in ['true', '1']:
+                return True
+            elif default_str.lower() in ['false', '0']:
+                return False
+        
+        # Handle integer defaults
+        elif json_type == "integer":
+            try:
+                return int(default_str)
+            except ValueError:
+                pass
+        
+        # Handle number defaults
+        elif json_type == "number":
+            try:
+                return float(default_str)
+            except ValueError:
+                pass
+        
+        # Handle None/null
+        if default_str in ['None', 'null']:
+            return None
+        
+        # Handle quoted strings
+        if default_str.startswith(("'", '"')) and default_str.endswith(("'", '"')):
+            return default_str[1:-1]
+        
+        # Return as-is for strings or if parsing fails
+        return default_str
     
     def _generate_flags(self, method: MethodInfo) -> Dict[str, bool]:
         """Generate flags for the method (destructive, paginated, lro, etc.)."""

@@ -9,10 +9,13 @@ No SDK-specific code required - works with GitHub, Kubernetes, Azure, and any ot
 import asyncio
 import json
 import sys
+import logging
 from typing import Any, Dict, List, Optional
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, CallToolResult
+
+logger = logging.getLogger(__name__)
 
 from introspector_v2 import UniversalIntrospector
 from mcp_tool_generator import UniversalMCPToolGenerator, MCPToolGroup
@@ -92,13 +95,25 @@ class UniversalMCPServer:
                     arguments=arguments
                 )
                 
+                # Debug logging
+                logger.info(f"🔍 Tool execution result type: {type(result)}")
+                logger.info(f"🔍 Tool execution result: {result}")
+                
+                # Ensure result is JSON serializable
+                if not isinstance(result, (dict, list, str, int, float, bool, type(None))):
+                    logger.warning(f"⚠️ Non-JSON result type: {type(result)}, converting to string")
+                    result = {"status": "success", "result": str(result)}
+                
                 # Format the result
-                return CallToolResult(
+                formatted_result = CallToolResult(
                     content=[TextContent(
                         type="text",
                         text=json.dumps(result, indent=2)
                     )]
                 )
+                
+                logger.info(f"🔍 CallToolResult created successfully")
+                return formatted_result
                 
             except Exception as e:
                 return CallToolResult(

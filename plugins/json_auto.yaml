@@ -1,0 +1,29 @@
+auth:
+  env_vars: []
+  fallback: anonymous
+  required: false
+  type: none
+hints:
+  boost_patterns: []
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - json
+  - json.decoder.JSONDecoder
+  - json.encoder.JSONEncoder
+  prioritize_methods:
+  - load
+  - loads
+  - dump
+  - dumps
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 1.0
+  description: This SDK is used for encoding and decoding JSON data.
+  generated_by: LLM Auto-Configurator
+  homepage: https://docs.python.org/3/library/json.html
+name: json
+sdk_module: json

@@ -1,0 +1,21 @@
+auth:
+  config_files:
+  - ~/.aws/credentials
+  - ~/.aws/config
+  env_vars:
+  - AWS_ACCESS_KEY_ID
+  - AWS_PROFILE
+  fallback: default_session
+  type: aws_credentials
+hints:
+  boost_patterns:
+  - ^(list|get|create|delete)_
+  prioritize_methods:
+  - client
+  - resource
+  - Session
+metadata:
+  description: AWS SDK for Python
+  homepage: https://boto3.amazonaws.com/
+name: boto3
+sdk_module: boto3

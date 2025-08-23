@@ -1,0 +1,41 @@
+auth:
+  env_vars:
+  - HTTP_AUTHORIZATION
+  - API_KEY
+  fallback: anonymous
+  required: false
+  type: credentials
+client:
+  class_path: urllib_request.urllib.request.FancyURLopener
+  init_params:
+    credentials: ${auth.value}
+  setup_methods: []
+hints:
+  boost_patterns:
+  - ^(get|list|create|update|delete)_
+  - ^(fetch|add|remove)_
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - urllib.request.AbstractBasicAuthHandler
+  - urllib.request.AbstractDigestAuthHandler
+  - urllib.request.HTTPBasicAuthHandler
+  penalize_method_patterns:
+  - ^(delete|remove|destroy)_
+  prioritize_methods:
+  - urlopen
+  - urlretrieve
+  - build_opener
+  - install_opener
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 0.85
+  description: The urllib_request SDK is used for opening and reading URLs, handling
+    various protocols including HTTP and FTP.
+  generated_by: LLM Auto-Configurator
+  homepage: https://docs.python.org/3/library/urllib.request.html
+name: urllib_request
+sdk_module: urllib_request

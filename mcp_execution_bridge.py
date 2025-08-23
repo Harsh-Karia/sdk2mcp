@@ -13,6 +13,7 @@ import asyncio
 from typing import Any, Dict, List, Optional
 from dataclasses import asdict
 import logging
+from plugin_system import get_plugin_manager
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class MCPExecutionBridge:
         self.sdk_module = sdk_module
         self.client_cache = {}  # Cache initialized clients
         self.module_cache = {}  # Cache imported modules
+        self.plugin_manager = get_plugin_manager()
         
     async def execute_tool(self, tool_name: str, sdk_method: str, 
                           arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -124,29 +126,42 @@ class MCPExecutionBridge:
     
     def _create_sdk_instance(self, cls: type, class_name: str) -> Any:
         """
-        Create an SDK client instance.
-        This is where SDK-specific initialization can be configured.
+        Create an SDK client instance using plugin configuration if available.
+        Falls back to universal patterns if no plugin exists.
         """
+        # First, try to use plugin configuration
+        configured_client = self.plugin_manager.create_configured_client(self.sdk_name)
+        if configured_client:
+            logger.info(f"Created configured client for {self.sdk_name}")
+            return configured_client
+        
+        # Fall back to universal patterns
+        logger.info(f"No plugin configuration found for {self.sdk_name}, using universal patterns")
+        
         # Try to create with no arguments first (many SDKs support this)
         try:
             return cls()
         except TypeError:
             pass
         
-        # GitHub-style initialization
-        if 'github' in self.sdk_name.lower():
-            # Check for token in environment or config
-            import os
-            token = os.getenv('GITHUB_TOKEN')
-            if token:
-                return cls(token)
-            else:
-                return cls()  # Anonymous access
+        # Universal auth patterns (fallback)
+        import os
         
-        # Kubernetes-style initialization
-        elif 'kubernetes' in self.sdk_name.lower():
-            if 'Api' in class_name:
-                # Kubernetes API clients need configuration
+        # Token-based auth (GitHub, etc.)
+        for token_env in ['GITHUB_TOKEN', 'API_TOKEN', 'ACCESS_TOKEN']:
+            token = os.getenv(token_env)
+            if token:
+                try:
+                    return cls(token)
+                except TypeError:
+                    try:
+                        return cls(auth=token)
+                    except TypeError:
+                        pass
+        
+        # Kubernetes-style API client
+        if 'Api' in class_name:
+            try:
                 from kubernetes import config, client
                 try:
                     config.load_incluster_config()
@@ -156,29 +171,28 @@ class MCPExecutionBridge:
                     except:
                         pass
                 
-                # Create API client
                 api_client = client.ApiClient()
                 return cls(api_client)
+            except ImportError:
+                pass
         
-        # Azure-style initialization
-        elif 'azure' in self.sdk_name.lower():
-            if 'Client' in class_name:
-                # Azure clients need credentials
+        # Azure-style credentials
+        if 'azure' in self.sdk_name.lower() and 'Client' in class_name:
+            try:
+                from azure.identity import DefaultAzureCredential
+                credential = DefaultAzureCredential()
+                
+                subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
+                
                 try:
-                    from azure.identity import DefaultAzureCredential
-                    credential = DefaultAzureCredential()
-                    
-                    # Check if subscription ID is needed
-                    import os
-                    subscription_id = os.getenv('AZURE_SUBSCRIPTION_ID')
-                    
                     if subscription_id:
                         return cls(credential, subscription_id)
                     else:
                         return cls(credential)
-                except ImportError:
-                    # Fall back to no credentials
-                    return cls()
+                except TypeError:
+                    pass
+            except ImportError:
+                pass
         
         # Default: try with empty initialization
         return cls()

@@ -16,6 +16,7 @@ from dataclasses import dataclass, asdict
 import ast
 import logging
 from hints import get_sdk_hints, load_hints
+from plugin_system import get_plugin_manager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,6 +73,19 @@ class UniversalIntrospector:
         all_hints = load_hints() if sdk_name else {}
         self.hints = get_sdk_hints(sdk_name, all_hints) if sdk_name else {}
         
+        # Also load plugin-based hints
+        self.plugin_manager = get_plugin_manager()
+        plugin_hints = self.plugin_manager.get_hints(sdk_name) if sdk_name else {}
+        
+        # Merge plugin hints with YAML hints (YAML takes precedence)
+        combined_hints = {**plugin_hints, **self.hints}
+        self.hints = combined_hints
+        
+        # Flag for auto-configuration - trigger if no SDK-specific plugin exists
+        has_sdk_plugin = self.plugin_manager.get_plugin(sdk_name) is not None if sdk_name else False
+        has_yaml_hints = sdk_name in (all_hints.get('sdks', {}) if all_hints else {})
+        self.enable_auto_config = sdk_name and not has_sdk_plugin and not has_yaml_hints
+        
         # Get root prefixes for scoping
         self.root_prefixes = self.hints.get('root_prefixes', [])
         
@@ -122,6 +136,12 @@ class UniversalIntrospector:
             self._deduplicate_methods()
             
             logger.info(f"Discovered {len(self.discovered_methods)} methods")
+            
+            # Try LLM auto-configuration if no hints were found
+            # Use LLM for smaller unknown SDKs (larger ones likely have plugins already)
+            if self.enable_auto_config and len(self.discovered_methods) >= 5:
+                logger.info(f"🎯 No plugin found for {self.sdk_name}, triggering LLM auto-configuration...")
+                self._try_llm_auto_configuration()
             
         except ImportError as e:
             logger.error(f"Failed to import module {module_name}: {e}")
@@ -654,3 +674,33 @@ class UniversalIntrospector:
         return (method.name in core_http_methods and 
                 ('requests.api' in method.full_name or 
                  'requests.Session' in str(method.parent_class)))
+    
+    def _try_llm_auto_configuration(self):
+        """Try to auto-configure the SDK using LLM analysis."""
+        try:
+            logger.info(f"🤖 Attempting LLM auto-configuration for {self.sdk_name}")
+            
+            # Import here to avoid circular imports and make it optional
+            from llm_auto_configurator import auto_configure_sdk
+            
+            # Generate plugin configuration
+            plugin = auto_configure_sdk(self.sdk_name, self.discovered_methods)
+            
+            if plugin:
+                logger.info(f"✅ LLM auto-configuration successful for {self.sdk_name}")
+                
+                # Reload plugin manager to pick up the new plugin
+                self.plugin_manager = get_plugin_manager()
+                
+                # Update hints with the new plugin configuration
+                new_hints = self.plugin_manager.get_hints(self.sdk_name)
+                if new_hints:
+                    self.hints.update(new_hints)
+                    logger.info(f"🔄 Updated hints with {len(new_hints)} auto-generated configurations")
+            else:
+                logger.info(f"❌ LLM auto-configuration failed for {self.sdk_name}")
+                
+        except ImportError:
+            logger.warning("LLM auto-configurator not available (missing openai dependency)")
+        except Exception as e:
+            logger.warning(f"LLM auto-configuration failed: {e}")
