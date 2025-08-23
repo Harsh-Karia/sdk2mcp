@@ -1,0 +1,51 @@
+sdks:
+  github:
+    root_prefixes: ["github."]
+    sentinel_defaults: ["NotSet"]
+    exclude_name_patterns: ["^__.*__$", "_with_http_info$", "(a)?close$"]
+    prefer_public_over_private: true
+    important_class_patterns: ["Github$", "Repository$", "User$", "Issue$", "PullRequest$", "AuthenticatedUser$"]
+    boost_owner_patterns: ["Repository$", "Issue$", "PullRequest$", "AuthenticatedUser$"]
+    
+  azure_mgmt_resource:
+    root_prefixes: ["azure.mgmt.resource."]
+    boost_owner_patterns: ["\\.operations\\.", "Operations$"]
+    penalize_owner_patterns: ["\\.policies\\.", "\\._.*_configuration", "azure\\.core\\."]
+    exclude_name_patterns: ["_with_http_info$", "^__.*__$"]
+    prefer_public_over_private: true
+    important_class_patterns: ["Client$", "Operations$", "ResourceGroupsOperations$", "DeploymentsOperations$"]
+    
+  azure_storage_blob:
+    root_prefixes: ["azure.storage.blob."]
+    penalize_owner_patterns: ["\\._", "azure\\.core\\."]
+    exclude_name_patterns: ["_with_http_info$", "^__.*__$"]
+    prefer_public_over_private: true
+    important_class_patterns: ["BlobClient$", "ContainerClient$", "BlobServiceClient$"]
+    
+  kubernetes:
+    root_prefixes: ["kubernetes."]
+    boost_owner_patterns: ["CoreV1Api$", "AppsV1Api$", "BatchV1Api$", "NetworkingV1Api$"]
+    penalize_owner_patterns: ["Admissionregistration"]
+    penalize_method_patterns: ["^connect_"]
+    boost_method_patterns: ["^(list|read|get|create|patch|replace|delete)_"]
+    exclude_name_patterns: ["_with_http_info$", "^__.*__$"]
+    prefer_public_over_private: true
+    important_class_patterns: ["V[0-9]Api$", "V[0-9]beta[0-9]Api$", "V[0-9]alpha[0-9]Api$"]
+    
+  requests:
+    root_prefixes: ["requests."]
+    exclude_name_patterns: ["^__.*__$", "_with_http_info$"]
+    prefer_public_over_private: true
+    important_class_patterns: ["Session$", "Response$", "PreparedRequest$"]
+
+defaults:
+  destructive_verbs: ["create", "update", "replace", "patch", "delete", "remove", "destroy"]
+  anchored_verbs: ["list", "get", "search", "create", "update", "replace", "patch", "delete", "find", "fetch"]
+  drop_container_methods: true
+  prefer_public_over_private: true
+  priority_limits:
+    p1_all: true  # Include all P1 (core HTTP methods)
+    p2_limit: 500  # Increased from 200 to capture full client classes
+    p3_limit: 100
+    p4_limit: 50
+    p5_limit: 20
