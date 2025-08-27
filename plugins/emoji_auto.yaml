@@ -1,0 +1,33 @@
+auth:
+  env_vars: []
+  fallback: anonymous
+  required: false
+  type: none
+hints:
+  boost_patterns:
+  - ^(get|list|create|update|delete)_
+  - ^(fetch|add|remove)_
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - emoji
+  - emoji.core.config
+  penalize_method_patterns:
+  - ^(delete|remove|destroy)_
+  prioritize_methods:
+  - emojize
+  - demojize
+  - emoji_count
+  - distinct_emoji_list
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 0.85
+  description: This SDK is used for handling and manipulating emoji characters, including
+    conversion between emoji and text representations.
+  generated_by: LLM Auto-Configurator
+  homepage: https://pypi.org/project/emoji/
+name: emoji
+sdk_module: emoji

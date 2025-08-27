@@ -1,0 +1,39 @@
+auth:
+  env_vars: []
+  fallback: anonymous
+  required: false
+  type: none
+client:
+  class_path: wikipediaapi.wikipediaapi.Wikipedia
+  init_params: {}
+  setup_methods: []
+hints:
+  boost_patterns:
+  - ^(get|list|create|update|delete)_
+  - ^(fetch|add|remove)_
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - wikipediaapi.Wikipedia
+  - wikipediaapi.WikipediaPage
+  penalize_method_patterns:
+  - ^(delete|remove|destroy)_
+  prioritize_methods:
+  - article
+  - backlinks
+  - categories
+  - categorymembers
+  - extracts
+  - info
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 0.85
+  description: This SDK is used for interacting with the Wikipedia API to retrieve
+    and manipulate Wikipedia content.
+  generated_by: LLM Auto-Configurator
+  homepage: https://wikipedia-api.readthedocs.io/en/latest/
+name: wikipediaapi
+sdk_module: wikipediaapi

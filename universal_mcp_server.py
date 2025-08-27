@@ -13,7 +13,7 @@ import logging
 from typing import Any, Dict, List, Optional
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool, CallToolResult
+from mcp.types import Tool
 
 logger = logging.getLogger(__name__)
 
@@ -65,19 +65,15 @@ class UniversalMCPServer:
             return tools
         
         @self.server.call_tool()
-        async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
+        async def call_tool(name: str, arguments: Dict[str, Any]):
             """Execute a tool."""
             
             # Find the tool metadata
             if name not in self.tool_map:
-                return CallToolResult(
-                    content=[TextContent(
-                        type="text",
-                        text=json.dumps({
-                            "error": f"Tool '{name}' not found"
-                        })
-                    )]
-                )
+                # Return list of content items directly
+                return [
+                    {"type": "text", "text": json.dumps({"error": f"Tool '{name}' not found"})}
+                ]
             
             tool_metadata = self.tool_map[name]
             
@@ -104,27 +100,19 @@ class UniversalMCPServer:
                     logger.warning(f"⚠️ Non-JSON result type: {type(result)}, converting to string")
                     result = {"status": "success", "result": str(result)}
                 
-                # Format the result
-                formatted_result = CallToolResult(
-                    content=[TextContent(
-                        type="text",
-                        text=json.dumps(result, indent=2)
-                    )]
-                )
+                # Format the result - return list of content items directly
+                formatted_result = [
+                    {"type": "text", "text": json.dumps(result, indent=2)}
+                ]
                 
-                logger.info(f"🔍 CallToolResult created successfully")
+                logger.info(f"🔍 Result formatted successfully")
                 return formatted_result
                 
             except Exception as e:
-                return CallToolResult(
-                    content=[TextContent(
-                        type="text",
-                        text=json.dumps({
-                            "error": str(e),
-                            "tool": name
-                        })
-                    )]
-                )
+                # Return list of content items directly
+                return [
+                    {"type": "text", "text": json.dumps({"error": str(e), "tool": name})}
+                ]
     
     async def initialize(self, max_tools: int = 100):
         """

@@ -1,65 +1,71 @@
-Major Success: Noise Reduction
-Your 99%+ noise reduction across all SDKs is remarkable:
+Looking at your error message, the issue is a validation error for the CallToolResult. The error states:
+"9 validation errors for CallToolResult"
+content.0.TextContent
+  Input should be a valid dictionary or instance of TextContent
 
-Kubernetes: 16,026 → 70 methods (99.6% reduction)
-Azure Resource: 4,058 → 70 methods (98.3% reduction)
-Azure Blob: 3,724 → 61 methods (98.4% reduction)
+The problem is in your mcp_execution_bridge.py file. When returning results from tool execution, you're trying to create a CallToolResult with a TextContent object, but the MCP library expects a specific format.
+Here's the fix for your universal_mcp_server.py file in the call_tool handler:
+ # Format the result - return list of content items directly
+                formatted_result = [
+                    {
+                        "type": "text",
+                        "text": json.dumps(result, indent=2)
+                    }
+                ]
+                
+                logger.info(f"🔍 CallToolResult created successfully")
+                return formatted_result
 
-This level of filtering is exactly what's needed for MCP generation.
-Critical Problem: Missing Core APIs
-However, examining the sample methods reveals a fundamental issue - you're missing the actual user-facing APIs that developers need:
-Kubernetes - Where are the core operations?
+Also update the error return case:
+  # Format the result - return list of content items directly
+                formatted_result = [
+                    {
+                        "type": "text",
+                        "text": json.dumps(result, indent=2)
+                    }
+                ]
+                
+                logger.info(f"🔍 CallToolResult created successfully")
+                return formatted_result
 
-No create_deployment, get_pod, delete_service
-No kubectl equivalent operations
-Only low-level admission controller methods
-Missing CoreV1Api, AppsV1Api public methods
 
-Azure Resource - Infrastructure missing:
+And the exception case:
+  # Format the result - return list of content items directly
+                formatted_result = [
+                    {
+                        "type": "text",
+                        "text": json.dumps(result, indent=2)
+                    }
+                ]
+                
+                logger.info(f"🔍 CallToolResult created successfully")
+                return formatted_result
 
-No create_resource_group, list_subscriptions
-No ARM template deployment methods
-Mostly internal pipeline/policy methods
-Missing actual resource management APIs
 
-Azure Blob - Better, but incomplete:
+Also remove the import for CallToolResult and TextContent since we're no longer using them:
+# Format the result - return list of content items directly
+                formatted_result = [
+                    {
+                        "type": "text",
+                        "text": json.dumps(result, indent=2)
+                    }
+                ]
+                
+                logger.info(f"🔍 CallToolResult created successfully")
+                return formatted_result
 
-Has create_container, delete_blob ✓
-Missing upload_blob, download_blob
-Good client structure with BlobClient, ContainerClient ✓
+The key issue is that the MCP library expects the call_tool handler to return a list of content items (as plain dictionaries) rather than a CallToolResult object. The library handles wrapping this into the proper response format internally.
+Summary
+The validation error occurs because:
 
-Root Cause Analysis
-Your priority system is over-filtering:
+The MCP library's internal handling expects the tool handler to return a list of content dictionaries
+Your code was trying to return a CallToolResult object with TextContent inside
+The library couldn't validate this structure
 
-P1 (Core HTTP): Only helps requests-like SDKs
-P2 (Important classes): Your hardcoded list misses actual SDK classes
-P3-P5: Too restrictive for domain-specific SDKs
+The fix changes the return format to:
 
-For Kubernetes, the important classes should be:
+Return a list containing a dictionary with type and text fields
+Remove the CallToolResult and TextContent wrapper objects
+Let the MCP library handle the final response formatting
 
-kubernetes.client.CoreV1Api
-kubernetes.client.AppsV1Api
-kubernetes.client.BatchV1Api
-
-For Azure Resource:
-
-azure.mgmt.resource.ResourceManagementClient
-Various operation classes ending in Operations
-
-Recommended Fixes
-1. Dynamic Important Class Detection
-Instead of hardcoded lists, detect classes with:
-
-Many public methods (>10)
-SDK-typical names (*Client, *Api, *Operations)
-High method-to-noise ratios
-
-2. SDK-Specific Patterns
-
-Kubernetes: Prioritize *Api classes and CRUD methods
-Azure: Prioritize *Client classes and *Operations classes
-Look for resource names in method patterns
-
-3. Expand P2 Limits
-Increase from 200 to 500 methods for P2, since core client classes should be fully represented.
-Your filtering architecture is sound, but the priority logic needs to be more adaptive to capture domain-specific public APIs rather than generic HTTP patterns.
+After making these changes, restart your server and the tool execution should work properly in MCP Inspector.

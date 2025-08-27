@@ -1,0 +1,33 @@
+auth:
+  env_vars: []
+  fallback: anonymous
+  required: false
+  type: none
+hints:
+  boost_patterns:
+  - ^(get|set|list|create|update|delete|register|reset)_
+  exclude_patterns:
+  - ^_
+  - __.*__
+  important_classes:
+  - markdown
+  - markdown.core.Markdown
+  - markdown.extensions.Extension
+  penalize_method_patterns:
+  - ^(remove|delete|destroy)_
+  prioritize_methods:
+  - markdown
+  - convert
+  - setConfig
+  - getConfig
+  priority_limits:
+    p2_limit: 100
+metadata:
+  auto_generated: true
+  confidence: 0.85
+  description: This SDK is used for converting text written in Markdown to HTML and
+    managing Markdown extensions.
+  generated_by: LLM Auto-Configurator
+  homepage: https://python-markdown.github.io/
+name: markdown
+sdk_module: markdown

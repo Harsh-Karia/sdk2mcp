@@ -210,7 +210,31 @@ class MCPExecutionBridge:
             
             # Check if argument was provided
             if param_name in arguments:
-                prepared[param_name] = arguments[param_name]
+                val = arguments[param_name]
+                ann = param.annotation
+                
+                # bytes-like coercion (generic)
+                if (ann is bytes or str(ann) in {"<class 'bytes'>", "bytes"} or param_name in {"s", "data", "content", "altchars"}):
+                    if isinstance(val, str):
+                        val = val.encode("utf-8")
+                    prepared[param_name] = val
+                    continue
+                
+                # simple bool/int/float coercions from strings (handy for Inspector inputs)
+                if ann is bool and isinstance(val, str):
+                    prepared[param_name] = val.lower() in {"1", "true", "t", "yes", "y"}
+                    continue
+                if ann is int and isinstance(val, str) and val.isdigit():
+                    prepared[param_name] = int(val)
+                    continue
+                if ann is float and isinstance(val, str):
+                    try:
+                        prepared[param_name] = float(val)
+                        continue
+                    except:
+                        pass
+                
+                prepared[param_name] = val
             elif param.default != inspect.Parameter.empty:
                 # Use default value (don't pass it)
                 pass
@@ -238,6 +262,14 @@ class MCPExecutionBridge:
         if result is None:
             return None
         
+        # bytes → emit ascii (or b64 if not decodable)
+        if isinstance(result, (bytes, bytearray, memoryview)):
+            try:
+                return bytes(result).decode("utf-8")
+            except UnicodeDecodeError:
+                import base64
+                return {"base64": base64.b64encode(bytes(result)).decode("ascii")}
+        
         # Try common serialization methods
         if hasattr(result, 'to_dict'):
             return result.to_dict()
@@ -252,6 +284,10 @@ class MCPExecutionBridge:
                        if not k.startswith('_') and self._is_serializable(v)}
             except:
                 pass
+        
+        # tuples/sets → lists
+        if isinstance(result, (tuple, set)):
+            return [self._serialize_result(x) for x in result]
         
         # Check if it's already JSON-serializable
         try:

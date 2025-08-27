@@ -241,3 +241,35 @@ MIT
 ---
 
 **Built for a37** - Demonstrating true universality in SDK tool generation!
+
+
+# Start server
+  python3 universal_mcp_server.py github github 30
+
+  # In MCP Inspector, try a safe read-only tool:
+  # Tool: github_get_emojis
+  # Arguments: {} (empty)
+
+  Test with Kubernetes:
+
+  # Start server  
+  python3 universal_mcp_server.py kubernetes kubernetes 30
+
+  # In MCP Inspector, look for tools like:
+  # - kubernetes_get_api_versions
+  # - kubernetes_list_namespace
+
+  Test with Azure (if you want to install it):
+
+  # Install Azure SDK
+  pip3 install azure-storage-blob
+
+  # Start server
+  python3 universal_mcp_server.py azure.storage.blob azure.storage.blob 30
+
+
+  # Markdown
+  python3 universal_mcp_server.py markdown markdown 20
+
+  # Emoji SDK
+  python3 universal_mcp_server.py emoji emoji 20
